@@ -266,7 +266,7 @@ void ShapefileWriter::writeLines(const ConstOsmMapPtr& map, const QString& path)
 
       // convert the geometry.
       std::string wkt = ElementConverter(map).convertToLineString(way)->toString();
-      char* t = (char*)wkt.data();
+      const char* t = (char*)wkt.data();
       OGRGeometry* geom;
       if (OGRGeometryFactory::createFromWkt(&t, poLayer->GetSpatialRef(), &geom) != OGRERR_NONE)
       {
@@ -504,7 +504,7 @@ void ShapefileWriter::_writeRelationPolygon(const ConstOsmMapPtr& map,
   // convert the geometry.
   const ConstRelationPtr& r = relation;
   std::string wkt = ElementConverter(map).convertToGeometry(r)->toString();
-  char* t = (char*)wkt.data();
+  const char* t = (char*)wkt.data();
   OGRGeometry* geom;
   if (OGRGeometryFactory::createFromWkt(&t, poLayer->GetSpatialRef(), &geom) != OGRERR_NONE)
   {
@@ -552,7 +552,7 @@ void ShapefileWriter::_writeWayPolygon(const ConstOsmMapPtr& map, const WayPtr& 
                                  toString(p->getGeometryType()));
   }
   std::string wkt = p->toString();
-  char* t = (char*)wkt.data();
+  const char* t = (char*)wkt.data();
   OGRGeometry* geom;
   if (OGRGeometryFactory::createFromWkt(&t, poLayer->GetSpatialRef(), &geom) != OGRERR_NONE)
   {

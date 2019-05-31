@@ -16,6 +16,9 @@ release {
   DEFINES -= DEBUG
 }
 
+# disable GEOS C++ warning
+DEFINES += USE_UNSTABLE_GEOS_CPP_API
+
 # ccache speeds up compiling
 QMAKE_CXX=ccache g++
 

@@ -240,7 +240,7 @@ bool CornerSplitter::_splitWay(long wayId, long nodeIdx, long nodeId, bool sharp
   //  For sharp corners, some small
   if (sharpCorner)
   {
-    GeometryFactory::unique_ptr factory = GeometryFactory::create();
+    GeometryFactory::Ptr factory = GeometryFactory::create();
     //  Check the previous segment to ensure it is larger than the circular error before splitting
     if (nodeIdx == 1)
     {

@@ -199,7 +199,7 @@ void OgrWriter::_addFeatureToLayer(OGRLayer* layer, const std::shared_ptr<Featur
                                    OGRFeature* poFeature)
 {
   std::string wkt = g->toString();
-  char* t = (char*)wkt.data();
+  const char* t = (char*)wkt.data();
   OGRGeometry* geom;
   int errCode = OGRGeometryFactory::createFromWkt(&t, layer->GetSpatialRef(), &geom) ;
   if (errCode != OGRERR_NONE)
