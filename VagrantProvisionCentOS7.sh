@@ -61,6 +61,7 @@ else
          glpk-devel \
          hoot-gdal \
          hoot-gdal-devel \
+         hoot-gdal-libs \
          hoot-gdal-python \
          libgeotiff \
          libgeotiff-devel \
@@ -86,6 +87,7 @@ sudo yum install -y \
      glpk-devel-$GLPK_VERSION \
      hoot-gdal-$GDAL_VERSION \
      hoot-gdal-devel-$GDAL_VERSION \
+     hoot-gdal-libs-$GDAL_VERSION \
      hoot-gdal-python-$GDAL_VERSION \
      libgeotiff-$LIBGEOTIFF_VERSION \
      libgeotiff-devel-$LIBGEOTIFF_VERSION \
@@ -109,6 +111,7 @@ sudo yum versionlock add \
      glpk-devel-$GLPK_VERSION \
      hoot-gdal-$GDAL_VERSION \
      hoot-gdal-devel-$GDAL_VERSION \
+     hoot-gdal-libs-$GDAL_VERSION \
      hoot-gdal-python-$GDAL_VERSION \
      libgeotiff-$LIBGEOTIFF_VERSION \
      libgeotiff-devel-$LIBGEOTIFF_VERSION \
