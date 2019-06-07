@@ -39,7 +39,7 @@ if [ "${ADDREPOS:-yes}" = "yes" ]; then
 
     # configure PGDG repository for PostgreSQL 9.5.
     echo "### Add pgdg repo ###" >> CentOS_upgrade.txt
-    sudo $HOOT_HOME/scripts/yum/pgdg-repo.sh 9.5
+    sudo $HOOT_HOME/scripts/yum/pgdg-repo.sh 10
 fi
 
 if [ "${YUMUPDATE:-yes}" = "yes" ]; then
@@ -160,13 +160,13 @@ sudo yum -y install \
     osmosis \
     java-1.8.0-openjdk \
     perl-XML-LibXML \
-    hoot-postgis24_95 \
+    hoot-postgis25_10 \
     libpostal-data \
     libpostal-devel \
-    postgresql95 \
-    postgresql95-contrib \
-    postgresql95-devel \
-    postgresql95-server \
+    postgresql10 \
+    postgresql10-contrib \
+    postgresql10-devel \
+    postgresql10-server \
     proj \
     proj-devel \
     protobuf \
