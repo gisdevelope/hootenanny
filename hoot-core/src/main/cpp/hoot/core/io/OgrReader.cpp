@@ -930,6 +930,10 @@ std::shared_ptr<Envelope> OgrReaderInternal::getBoundingBoxFromConfig(const Sett
     std::shared_ptr<OGRSpatialReference> wgs84 = MapProjector::createWgs84Projection();
     std::shared_ptr<OGRCoordinateTransformation> transform(
       OGRCreateCoordinateTransformation(wgs84.get(), srs));
+
+    bool srcLatAsLong = _transform->GetSourceCS()->EPSGTreatsAsLatLong();
+    bool destLatAsLong = _transform->GetTargetCS()->EPSGTreatsAsLatLong();
+
     const int steps = 8;
     for (int xi = 0; xi <= steps; xi++)
     {
@@ -939,7 +943,9 @@ std::shared_ptr<Envelope> OgrReaderInternal::getBoundingBoxFromConfig(const Sett
         double ty = bboxValues[1] + yi * (bboxValues[3] - bboxValues[1]) / (double)steps;
         double tx = x;
 
+        if (srcLatAsLong) swap(tx, ty);
         transform->Transform(1, &tx, &ty);
+        if (destLatAsLong) swap(tx, ty);
 
         result->expandToInclude(tx, ty);
       }
@@ -1187,6 +1193,12 @@ void OgrReaderInternal::_reproject(double& x, double& y)
   {
     double inx = x;
     double iny = y;
+
+    bool srcLatAsLong = _transform->GetSourceCS()->EPSGTreatsAsLatLong();
+    bool destLatAsLong = _transform->GetTargetCS()->EPSGTreatsAsLatLong();
+
+    if (srcLatAsLong) swap(x,y);
+
     if (_transform->Transform(1, &x, &y) == FALSE)
     {
       LOG_TRACE("Source x: " << inx);
@@ -1196,6 +1208,8 @@ void OgrReaderInternal::_reproject(double& x, double& y)
       throw IllegalArgumentException("Unable to transform point. Is the point outside the "
                                      "projection bounds?");
     }
+
+    if (destLatAsLong) swap(x,y);
   }
 }
 

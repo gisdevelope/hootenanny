@@ -118,25 +118,36 @@ public:
     vector<double> deltaErrors;
     bool success = true;
 
+    bool srcLatAsLong = t->GetSourceCS()->EPSGTreatsAsLatLong();
+    bool destLatAsLong = t->GetTargetCS()->EPSGTreatsAsLatLong();
+
     for (double x = env.MinX; x <= env.MaxX; x += stepSizeX)
     {
       for (double y = env.MinY; y <= env.MaxY; y += stepSizeY)
       {
         Coordinate c1(x, y);
         Coordinate p1 = c1;
+
+        if (srcLatAsLong) swap(p1.x, p1.y);
         success &= t->Transform(1, &p1.x, &p1.y);
+        if (destLatAsLong) swap(p1.x, p1.y);
+
         NodePtr n1(new Node(Status::Unknown1, map->createNextNodeId(), c1, 10));
         map->addNode(n1);
 
         Coordinate upc = GeometryUtils::calculateDestination(c1, 0.0, distance);
         Coordinate up = upc;
+        if (srcLatAsLong) swap(up.x, up.y);
         success &= t->Transform(1, &up.x, &up.y);
+        if (destLatAsLong) swap(up.x, up.y);
 
         for (double bearing = 0.0; bearing < 360.0; bearing += 20.0)
         {
           Coordinate c2 = GeometryUtils::calculateDestination(c1, bearing, distance);
           Coordinate p2 = c2;
+          if (srcLatAsLong) swap(p2.x, p2.y);
           success &= t->Transform(1, &p2.x, &p2.y);
+          if (destLatAsLong) swap(p2.x, p2.y);
 
           if (e->contains(c2))
           {

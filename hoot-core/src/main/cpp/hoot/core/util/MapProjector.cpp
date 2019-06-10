@@ -89,10 +89,10 @@ void ReprojectCoordinateFilter::project(Coordinate* c) const
   double inx = c->x;
   double iny = c->y;
 
-  if (_transform->GetSourceCS()->EPSGTreatsAsLatLong())
-  {
-    double t = c->x; c->x = c->y; c->y = t;
-  }
+  bool srcLatAsLong = _transform->GetSourceCS()->EPSGTreatsAsLatLong();
+  bool destLatAsLong = _transform->GetTargetCS()->EPSGTreatsAsLatLong();
+
+  if (srcLatAsLong) swap(c->x, c->y);
 
   if (_transform->Transform(1, &c->x, &c->y) == FALSE)
   {
@@ -114,6 +114,8 @@ void ReprojectCoordinateFilter::project(Coordinate* c) const
     }
     throw IllegalArgumentException(err);
   }
+
+  if (destLatAsLong) swap(c->x, c->y);
 }
 
 
@@ -165,83 +167,6 @@ std::shared_ptr<OGRSpatialReference> MapProjector::createAeacProjection(const OG
 vector<std::shared_ptr<OGRSpatialReference>> MapProjector::createAllPlanarProjections(
   const OGREnvelope& env)
 {
-  /*
-  // test data
-  const double vx = -104.8;
-  const double vy = 39;
-
-  // first entry in list
-  OGRSpatialReference ortho;
-  double xx = (env.MinX + env.MaxX) / 2.0;
-  double yy = (env.MinY + env.MaxY) / 2.0;
-  if (ortho.SetOrthographic(yy, xx, 0, 0) == OGRERR_NONE) { LOG_INFO( "ortho ok"); } else LOG_INFO("fail 2");
-
-
-//  // sample from: https://gdal.org/tutorials/osr_api_tut.html
-//  OGRSpatialReference    oUTM, *poLongLat;
-  OGRCoordinateTransformation *poTransform;
-
-//  oUTM.SetProjCS("UTM 17 / WGS84");
-//  oUTM.SetWellKnownGeogCS( "WGS84" );
-//  oUTM.SetUTM( 17 );
-
-//  poLongLat = oUTM.CloneGeogCS();
-//  vector<int> mapping;
-//  mapping.push_back(OAMS_TRADITIONAL_GIS_ORDER);
-//  poLongLat->SetDataAxisToSRSAxisMapping(mapping);
-//  poTransform = OGRCreateCoordinateTransformation( &oUTM, poLongLat );
-
-//  double x = vx; double y = vy;
-//  if (poTransform->Transform( 1, &x, &y )) { LOG_INFO( "sample 1 transform ok:" << x << "/" << y ); } else LOG_INFO("fail 1");
-
-
-  // various methods to define the same thing
-
-  // as in createWgs84Projection()
-  OGRSpatialReference wgs84_import;
-  if (wgs84_import.importFromEPSG(4326) == OGRERR_NONE) { LOG_INFO( "import ok"); } else LOG_INFO("fail 4");
-
-  int o = ortho.EPSGTreatsAsLatLong();
-  int w = wgs84_import.EPSGTreatsAsLatLong();
-
-  LOG_VAR(o);
-  LOG_VAR(w);
-
-  poTransform = OGRCreateCoordinateTransformation( &wgs84_import, &wgs84_import );
-  double x = vx; double y = vy;
-  if( poTransform->Transform( 1, &x, &y ) ) { LOG_INFO( "import transform ok:" << x << "/" << y ); } else LOG_INFO("fail 4a");
-
-
-  poTransform = OGRCreateCoordinateTransformation( &ortho, &ortho );
-  x = vx; y = vy;
-  if( poTransform->Transform( 1, &x, &y ) ) { LOG_INFO( "import transform ok:" << x << "/" << y ); } else LOG_INFO("fail 4b");
-
-
-  poTransform = OGRCreateCoordinateTransformation( &wgs84_import, &ortho );
-  x = vx; y = vy;
-  if( poTransform->Transform( 1, &x, &y ) ) { LOG_INFO( "import transform ok:" << x << "/" << y ); } else LOG_INFO("fail 5");
-
-  poTransform = OGRCreateCoordinateTransformation( &ortho, &wgs84_import );
-  x = vx; y = vy;
-  if( poTransform->Transform( 1, &x, &y ) ) { LOG_INFO( "import transform ok:" << x << "/" << y ); } else LOG_INFO("fail 5a");
-
-// https://gis.stackexchange.com/questions/81062/gdal-proj4-equirectangular-projection-coordinate-system-units-assumed-by-ogrspat
-
-// https://gdal.org/api/ogrspatialref.html?highlight=srs_ua_degree_conv
-
-
-//  OGRSpatialReference wgs84_set;
-//  if (wgs84_set.SetWellKnownGeogCS("WGS84") == OGRERR_NONE) { LOG_INFO( "set ok"); } else LOG_INFO("fail 6");
-
-
-//  poTransform = OGRCreateCoordinateTransformation( &wgs84_set, &ortho );
-//  x = vx; y = vy;
-//  if( poTransform->Transform( 1, &x, &y ) ) { LOG_INFO( "set transform ok:" << x << "/" << y ); } else LOG_INFO("fail 7");
-
-*/
-
-
-
   vector<std::shared_ptr<OGRSpatialReference>> result;
 
   double centerLat = (env.MaxY + env.MinY) / 2.0;
@@ -529,7 +454,8 @@ bool MapProjector::_evaluateProjection(const OGREnvelope& env,
   maxDistanceError = 0.0;
   maxAngleError = 0.0;
 
-  bool treatLatAsLong = wgs84.get()->EPSGTreatsAsLatLong();
+  bool srcLatAsLong = wgs84.get()->EPSGTreatsAsLatLong();
+  bool destLatAsLong = srs.get()->EPSGTreatsAsLatLong();
 
   for (double x = env.MinX; x <= env.MaxX; x += stepSizeX)
   {
@@ -538,8 +464,9 @@ bool MapProjector::_evaluateProjection(const OGREnvelope& env,
       Coordinate c1(x, y);
       Coordinate p1 = c1;
 
-      if (treatLatAsLong) { double t = p1.x; p1.x = p1.y; p1.y = t; }
+      if (srcLatAsLong) swap(p1.x, p1.y);
       success &= t->Transform(1, &p1.x, &p1.y);
+      if (destLatAsLong) swap(p1.x, p1.y);
 
       if (!success)
       {
@@ -549,16 +476,18 @@ bool MapProjector::_evaluateProjection(const OGREnvelope& env,
       Coordinate upc = GeometryUtils::calculateDestination(c1, 0.0, testDistance);
       Coordinate up = upc;
 
-      if (treatLatAsLong) { double t = up.x; up.x = up.y; up.y = t; }
+      if (srcLatAsLong) swap(up.x, up.y);
       success &= t->Transform(1, &up.x, &up.y);
+      if (destLatAsLong) swap(up.x, up.y);
 
       for (double bearing = 0.0; bearing < 360.0; bearing += 20.0)
       {
         Coordinate c2 = GeometryUtils::calculateDestination(c1, bearing, testDistance);        
         Coordinate p2 = c2;
 
-        if (treatLatAsLong) { double t = p2.x; p2.x = p2.y; p2.y = t; }
+        if (srcLatAsLong) swap(p2.x, p2.y);
         success &= t->Transform(1, &p2.x, &p2.y);
+        if (destLatAsLong) swap(p2.x, p2.y);
 
         if (e->contains(c2))
         {
