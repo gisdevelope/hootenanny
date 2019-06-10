@@ -931,8 +931,8 @@ std::shared_ptr<Envelope> OgrReaderInternal::getBoundingBoxFromConfig(const Sett
     std::shared_ptr<OGRCoordinateTransformation> transform(
       OGRCreateCoordinateTransformation(wgs84.get(), srs));
 
-    bool srcLatAsLong = _transform->GetSourceCS()->EPSGTreatsAsLatLong();
-    bool destLatAsLong = _transform->GetTargetCS()->EPSGTreatsAsLatLong();
+    bool srcLatAsLong = transform->GetSourceCS()->EPSGTreatsAsLatLong();
+    bool destLatAsLong = transform->GetTargetCS()->EPSGTreatsAsLatLong();
 
     const int steps = 8;
     for (int xi = 0; xi <= steps; xi++)
