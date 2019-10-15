@@ -49,10 +49,11 @@ void EdgeScoreSeeder::run()
   _id = QUuid::createUuid().toString();
   LOG_TRACE("Starting thread: " << _id << "...");
 
-  _matchFinder.reset(new EdgeMatchSetFinder(_details, _output, _n1, _n2));
+  _matchFinder.reset(new EdgeMatchSetFinder2(_details, _output, _n1, _n2));
   // our stubs don't need to be bidirectional since they don't create new nodes.
   _matchFinder->setAddStubsInBothDirections(false);
   _matchFinder->setIncludePartialMatches(true);
+  _matchFinder->setEdgeMatchSimilarities(_edgeMatchSimilarities);
 
   while (!_input->empty())
   {

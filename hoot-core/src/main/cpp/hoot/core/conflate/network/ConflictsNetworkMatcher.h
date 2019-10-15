@@ -35,6 +35,7 @@
 #include <hoot/core/conflate/network/NetworkEdgeScore.h>
 #include <hoot/core/conflate/network/NetworkVertexScore.h>
 #include <hoot/core/conflate/network/OsmNetwork.h>
+#include <hoot/core/conflate/network/EdgeMatchSetFinder.h>
 
 // tgs
 #include <tgs/RStarTree/HilbertRTree.h>
@@ -170,6 +171,7 @@ private:
   void _seedEdgeScores();
   void _seedEdgeScoresParallel();
   QQueue<ConstNetworkEdgePtr> _getEdgeScoreSeederInput();
+  std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> _initEdgeMatchSimilarities();
 
   void _printEdgeMatches();
 };

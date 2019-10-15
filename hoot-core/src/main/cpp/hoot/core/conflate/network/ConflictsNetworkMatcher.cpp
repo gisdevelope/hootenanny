@@ -29,7 +29,6 @@
 // hoot
 #include <hoot/core/algorithms/FrechetDistance.h>
 #include <hoot/core/conflate/network/EdgeMatch.h>
-#include <hoot/core/conflate/network/EdgeMatchSetFinder.h>
 #include <hoot/core/util/Factory.h>
 #include <hoot/core/util/Log.h>
 #include <hoot/core/util/ConfigOptions.h>
@@ -687,9 +686,26 @@ QQueue<ConstNetworkEdgePtr> ConflictsNetworkMatcher::_getEdgeScoreSeederInput()
   return n1Edges;
 }
 
+std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> ConflictsNetworkMatcher::_initEdgeMatchSimilarities()
+{
+  std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> edgeMatchSimilarities(
+    new QMap<QString, EdgeMatchSimilarity>());
+  // purposefully mantaining this order (may not end up needing to actually having to keep it,
+  // though)
+  edgeMatchSimilarities->insert(EdgeMatchSetFinder::EDGE_MATCH_SIMILAR_KEY, EdgeMatchSimilarity());
+  edgeMatchSimilarities->insert(
+    EdgeMatchSetFinder::EDGE_MATCH_SIMILAR_SECOND_REVERSED_KEY, EdgeMatchSimilarity());
+  edgeMatchSimilarities->insert(
+    EdgeMatchSetFinder::EDGE_MATCH_SIMILAR_FIRST_REVERSED_KEY, EdgeMatchSimilarity());
+  return edgeMatchSimilarities;
+}
+
 void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
 {
   QQueue<ConstNetworkEdgePtr> n1Edges = _getEdgeScoreSeederInput();
+
+  std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> edgeMatchSimilarities =
+    _initEdgeMatchSimilarities();;
 
   QMutex inputMutex;
   QMutex outputMutex;
@@ -710,6 +726,7 @@ void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
     edgeScoreSeedTask->setEdge2Index(_edge2Index);
     edgeScoreSeedTask->setIndex2Edge(_index2Edge);
     edgeScoreSeedTask->setOutputMutex(&outputMutex);
+    edgeScoreSeedTask->setEdgeMatchSimilarities(edgeMatchSimilarities);
     threadPool.start(edgeScoreSeedTask);
   }
   LOG_VART(threadPool.activeThreadCount());
@@ -717,6 +734,8 @@ void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
 
   const bool allThreadsRemoved = threadPool.waitForDone();
   LOG_VART(allThreadsRemoved);
+
+  LOG_VART(StringUtils::formatLargeNumber(_edgeMatches->getSize()));
 }
 
 void ConflictsNetworkMatcher::_seedEdgeScores()
@@ -767,16 +786,17 @@ void ConflictsNetworkMatcher::_seedEdgeScores()
       // added here...why is that?; update 10/11/19: even with StringUtils removed here (so added it
       // back in), still seeing multiple lines logged...why?
       PROGRESS_INFO(
-        StringUtils::formatLargeNumber(count) << " / " <<
-        StringUtils::formatLargeNumber(em.size()) << " edge match scores processed for " <<
-        StringUtils::formatLargeNumber(totalNumIntersections) << " total intersections. " <<
+        StringUtils::formatLargeNumber(count) << " edge match scores processed for " <<
+        StringUtils::formatLargeNumber(_edgeMatches->getSize()) << " edge matches and " <<
+        StringUtils::formatLargeNumber(totalNumIntersections) << " intersections. " <<
         StringUtils::formatLargeNumber(finder.getNumSimilarEdgeMatches()) <<
         " duplicate edge matches removed.");
     }
   }
   LOG_DEBUG(
     StringUtils::formatLargeNumber(count) << " edge match scores processed for " <<
-    StringUtils::formatLargeNumber(totalNumIntersections) << " total intersections. " <<
+    StringUtils::formatLargeNumber(_edgeMatches->getSize()) << " edge matches and " <<
+    StringUtils::formatLargeNumber(totalNumIntersections) << " intersections. " <<
     StringUtils::formatLargeNumber(finder.getNumSimilarEdgeMatches()) <<
     " duplicate edge matches removed.");
 

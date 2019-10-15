@@ -30,7 +30,7 @@
 // Hoot
 #include <hoot/core/conflate/network/NetworkDetails.h>
 #include <hoot/core/conflate/network/IndexedEdgeMatchSet.h>
-#include <hoot/core/conflate/network/EdgeMatchSetFinder.h>
+#include <hoot/core/conflate/network/EdgeMatchSetFinder2.h>
 
 // Tgs
 #include <tgs/RStarTree/IntersectionIterator.h>
@@ -64,20 +64,24 @@ public:
   void setNetworks(OsmNetworkPtr network1, OsmNetworkPtr network2)
   { _n1 = network1; _n2 = network2; }
   void setInput(QQueue<ConstNetworkEdgePtr>* input) { _input = input; }
-  void setInputMutex(QMutex* inputMutex) { _inputMutex = inputMutex; }
+  void setInputMutex(QMutex* mutex) { _inputMutex = mutex; }
   void setOutput(IndexedEdgeMatchSetPtr output) { _output = output; }
-  void setOutputMutex(QMutex* outputMutex) { _outputMutex = outputMutex; }
+  void setOutputMutex(QMutex* mutex) { _outputMutex = mutex; }
   void setEdge2Index(Tgs::HilbertRTreePtr edge2Index) { _edge2Index = edge2Index; }
   void setIndex2Edge(const std::deque<ConstNetworkEdgePtr>& index2Edge) { _index2Edge = index2Edge; }
+  void setEdgeMatchSimilarities(
+    std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> edgeMatchSimilarities)
+  { _edgeMatchSimilarities = edgeMatchSimilarities; }
 
 private:
 
   NetworkDetailsPtr _details;
   IndexedEdgeMatchSetPtr _output;
   OsmNetworkPtr _n1, _n2;
-  EdgeMatchSetFinderPtr _matchFinder;
+  EdgeMatchSetFinder2Ptr _matchFinder;
   Tgs::HilbertRTreePtr _edge2Index;
   std::deque<ConstNetworkEdgePtr> _index2Edge;
+  std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> _edgeMatchSimilarities;
 
   QMutex* _inputMutex;
   QMutex* _outputMutex;
