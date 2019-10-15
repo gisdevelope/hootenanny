@@ -72,6 +72,7 @@ public:
   void setEdgeMatchSimilarities(
     std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> edgeMatchSimilarities)
   { _edgeMatchSimilarities = edgeMatchSimilarities; }
+  void setMaxEdgeMatchSetFinderSteps(const int max) { _maxEdgeMatchSetFinderSteps = max; }
 
 private:
 
@@ -91,6 +92,7 @@ private:
   int _startingInputSize;
   int _numEdgesProcesed;
   int _numIntersectionsProcesed;
+  int _maxEdgeMatchSetFinderSteps;
 
   void _processEdge(ConstNetworkEdgePtr edge);
 

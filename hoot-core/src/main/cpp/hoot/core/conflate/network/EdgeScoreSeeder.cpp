@@ -40,7 +40,8 @@ namespace hoot
 EdgeScoreSeeder::EdgeScoreSeeder() :
 _startingInputSize(0),
 _numEdgesProcesed(0),
-_numIntersectionsProcesed(0)
+_numIntersectionsProcesed(0),
+_maxEdgeMatchSetFinderSteps(20)
 {
 }
 
@@ -54,6 +55,7 @@ void EdgeScoreSeeder::run()
   _matchFinder->setAddStubsInBothDirections(false);
   _matchFinder->setIncludePartialMatches(true);
   _matchFinder->setEdgeMatchSimilarities(_edgeMatchSimilarities);
+  _matchFinder->setMaxSteps(_maxEdgeMatchSetFinderSteps);
 
   while (!_input->empty())
   {
@@ -94,15 +96,19 @@ void EdgeScoreSeeder::_processEdge(ConstNetworkEdgePtr edge1)
     LOG_VART(edge1);
     LOG_VART(e2);
 
+    //_schemaMutex->lock();
+    _outputMutex->lock();
     const double score = _details->getPartialEdgeMatchScore(edge1, e2);
+    //_schemaMutex->unlock();
     LOG_TRACE("partial edge match score:" << score);
     if (score > 0.0)
     {
       // Add all the EdgeMatches that are seeded with this edge pair.
-      _outputMutex->lock();
+      //_outputMutex->lock();
       _matchFinder->addEdgeMatches(edge1, e2);
-      _outputMutex->unlock();
+      //_outputMutex->unlock();
     }
+    _outputMutex->unlock();
 
     _numIntersectionsProcesed++;
   }

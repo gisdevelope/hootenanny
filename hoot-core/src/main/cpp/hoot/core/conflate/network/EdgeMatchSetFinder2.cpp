@@ -48,7 +48,6 @@ EdgeMatchSetFinder2::EdgeMatchSetFinder2(NetworkDetailsPtr details, IndexedEdgeM
   _matchSet(matchSet),
   _n1(n1),
   _n2(n2),
-  _maxSteps(ConfigOptions().getNetworkEdgeMatchSetFinderMaxIterations()),
   _numSimilarEdgeMatches(0)
 {
 }

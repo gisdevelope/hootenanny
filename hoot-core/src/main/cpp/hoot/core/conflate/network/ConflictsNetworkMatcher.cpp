@@ -711,7 +711,12 @@ void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
   QMutex outputMutex;
 
   QThreadPool threadPool;
-  const int threadCount = 1; // TODO: move to config
+  int threadCount = ConfigOptions().getNetworkEdgeScoreSeederThreadCount();
+  if (threadCount < 1)
+  {
+    threadCount = QThread::idealThreadCount();
+  }
+  LOG_VARD(threadCount);
   threadPool.setMaxThreadCount(threadCount);
   LOG_VART(threadPool.maxThreadCount());
   for (int i = 0; i < threadCount; i++)
@@ -727,6 +732,8 @@ void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
     edgeScoreSeedTask->setIndex2Edge(_index2Edge);
     edgeScoreSeedTask->setOutputMutex(&outputMutex);
     edgeScoreSeedTask->setEdgeMatchSimilarities(edgeMatchSimilarities);
+    edgeScoreSeedTask->setMaxEdgeMatchSetFinderSteps(
+      ConfigOptions().getNetworkEdgeMatchSetFinderMaxIterations());
     threadPool.start(edgeScoreSeedTask);
   }
   LOG_VART(threadPool.activeThreadCount());

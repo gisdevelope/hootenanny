@@ -2176,6 +2176,13 @@ generally not changed by users. Reasonable range is [0, 2].
 
 The maximum number of optimization iterations used to calculate edge match sets.
 
+=== network.edge.score.seeder.thread.count
+
+* Data Type: int
+* Default Value: `8`
+
+TODO
+
 === network.match.scoring.function.max
 
 * Data Type: double

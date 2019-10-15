@@ -71,6 +71,8 @@ public:
     std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> edgeMatchSimilarities)
   { _edgeMatchSimilarities = edgeMatchSimilarities; }
 
+  void setMaxSteps(const int max) { _maxSteps = max; }
+
 private:
 
   bool _bidirectionalStubs;
