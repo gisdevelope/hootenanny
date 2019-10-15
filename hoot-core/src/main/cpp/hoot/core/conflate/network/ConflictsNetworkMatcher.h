@@ -40,6 +40,9 @@
 #include <tgs/RStarTree/HilbertRTree.h>
 #include <tgs/RStarTree/IntersectionIterator.h>
 
+// Qt
+#include <QQueue>
+
 namespace hoot
 {
 
@@ -165,6 +168,8 @@ private:
   void _iterateRank();
 
   void _seedEdgeScores();
+  void _seedEdgeScoresParallel();
+  QQueue<ConstNetworkEdgePtr> _getEdgeScoreSeederInput();
 
   void _printEdgeMatches();
 };

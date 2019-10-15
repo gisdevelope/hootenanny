@@ -396,11 +396,13 @@ bool EdgeMatchSetFinder::_recordMatch(ConstEdgeMatchPtr em)
     {
       existingSimilarMatch =
         _edgeMatchSimilarities[similarityValsItr.key()][similarityValsItr.value()];
+      LOG_VART(existingSimilarMatch.score);
       if (existingSimilarMatch.score != -1.0)
       {
         break;
       }
     }
+    LOG_VART(existingSimilarMatch.score);
 
     // An EdgeMatchScore returned with a score == -1.0 means that no similar match was found.
     if (existingSimilarMatch.score != -1.0)

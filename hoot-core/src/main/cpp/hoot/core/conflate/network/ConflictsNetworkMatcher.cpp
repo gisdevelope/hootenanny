@@ -34,9 +34,12 @@
 #include <hoot/core/util/Log.h>
 #include <hoot/core/util/ConfigOptions.h>
 #include <hoot/core/util/StringUtils.h>
+#include <hoot/core/conflate/network/EdgeScoreSeeder.h>
 
 // Qt
 #include <QElapsedTimer>
+#include <QMutex>
+#include <QThreadPool>
 
 using namespace geos::geom;
 using namespace std;
@@ -637,7 +640,8 @@ void ConflictsNetworkMatcher::matchNetworks(ConstOsmMapPtr map, OsmNetworkPtr n1
   _createEdge2Index();
 
   // create an initial estimation of edge match based on typical similarity scores
-  _seedEdgeScores();
+  //_seedEdgeScores();
+  _seedEdgeScoresParallel();
 
   _createMatchRelationships();
 
@@ -671,6 +675,50 @@ void ConflictsNetworkMatcher::finalize()
   }
 }
 
+QQueue<ConstNetworkEdgePtr> ConflictsNetworkMatcher::_getEdgeScoreSeederInput()
+{
+  QQueue<ConstNetworkEdgePtr> n1Edges;
+  const OsmNetwork::EdgeMap& em = _n1->getEdgeMap();
+  for (OsmNetwork::EdgeMap::const_iterator it = em.begin(); it != em.end(); ++it)
+  {
+    ConstNetworkEdgePtr e1 = it.value();
+    n1Edges.append(e1);
+  }
+  return n1Edges;
+}
+
+void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
+{
+  QQueue<ConstNetworkEdgePtr> n1Edges = _getEdgeScoreSeederInput();
+
+  QMutex inputMutex;
+  QMutex outputMutex;
+
+  QThreadPool threadPool;
+  const int threadCount = 1; // TODO: move to config
+  threadPool.setMaxThreadCount(threadCount);
+  LOG_VART(threadPool.maxThreadCount());
+  for (int i = 0; i < threadCount; i++)
+  {
+    EdgeScoreSeeder* edgeScoreSeedTask = new EdgeScoreSeeder();
+    edgeScoreSeedTask->setNetworkDetails(_details);
+    edgeScoreSeedTask->setNetworks(_n1, _n2);
+    edgeScoreSeedTask->setInput(&n1Edges);
+    edgeScoreSeedTask->setInputMutex(&inputMutex);
+    edgeScoreSeedTask->setOutput(_edgeMatches);
+    edgeScoreSeedTask->setOutputMutex(&outputMutex);
+    edgeScoreSeedTask->setEdge2Index(_edge2Index);
+    edgeScoreSeedTask->setIndex2Edge(_index2Edge);
+    edgeScoreSeedTask->setOutputMutex(&outputMutex);
+    threadPool.start(edgeScoreSeedTask);
+  }
+  LOG_VART(threadPool.activeThreadCount());
+  LOG_DEBUG("\tLaunched " << threadCount << " edge processing tasks...");
+
+  const bool allThreadsRemoved = threadPool.waitForDone();
+  LOG_VART(allThreadsRemoved);
+}
+
 void ConflictsNetworkMatcher::_seedEdgeScores()
 {  
   EdgeMatchSetFinder finder(_details, _edgeMatches, _n1, _n2);
@@ -701,7 +749,7 @@ void ConflictsNetworkMatcher::_seedEdgeScores()
       LOG_VART(e2);
 
       const double score = _details->getPartialEdgeMatchScore(e1, e2);
-      LOG_TRACE("partial edge match score:" << score);
+      LOG_TRACE("partial edge match score: " << score);
       if (score > 0.0)
       {
         // Add all the EdgeMatches that are seeded with this edge pair.
@@ -716,8 +764,8 @@ void ConflictsNetworkMatcher::_seedEdgeScores()
     if (count % 10 == 0)
     {
       // Strangely, PROGRESS_INFO doesn't log one per line once StringUtils::formatLargeNumber gets
-      // added here...why is that?; update 10/11/19: even with StringUtils removed here, I'm still
-      // seeing multiple lines logged...why?
+      // added here...why is that?; update 10/11/19: even with StringUtils removed here (so added it
+      // back in), still seeing multiple lines logged...why?
       PROGRESS_INFO(
         StringUtils::formatLargeNumber(count) << " / " <<
         StringUtils::formatLargeNumber(em.size()) << " edge match scores processed for " <<
@@ -726,6 +774,11 @@ void ConflictsNetworkMatcher::_seedEdgeScores()
         " duplicate edge matches removed.");
     }
   }
+  LOG_DEBUG(
+    StringUtils::formatLargeNumber(count) << " edge match scores processed for " <<
+    StringUtils::formatLargeNumber(totalNumIntersections) << " total intersections. " <<
+    StringUtils::formatLargeNumber(finder.getNumSimilarEdgeMatches()) <<
+    " duplicate edge matches removed.");
 
   _printEdgeMatches();
 }

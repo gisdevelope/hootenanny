@@ -30,7 +30,6 @@
 // Hoot
 #include <hoot/core/elements/OsmMap.h>
 #include <hoot/core/elements/ElementConverter.h>
-#include <hoot/core/util/StringUtils.h>
 
 // TGS
 #include <tgs/DisjointSet/DisjointSetMap.h>
@@ -82,7 +81,7 @@ struct BuildingPartRelationship
 };
 
 /**
- * Building part merge pre-processing thread
+ * Building part merge pre-processing thread; called by BuildingPartMergeOp
  */
 class BuildingPartPreMergeCollector : public QRunnable
 {
@@ -135,8 +134,9 @@ private:
   int _numGeometriesCleaned;
   int _numBuildingPartsProcessed;
 
-  // Don't pass the shared pointers used by these methods around as refs, as it will disrupt the
-  // ref counting and wreak havoc in the threads.
+  // Originally it seemed passing the shared pointers used by these methods around as refs would
+  // disrupt the ref counting and wreak havoc in the threads....but not sure about that now, since
+  // some of them are now being passed as refs...
 
   std::shared_ptr<geos::geom::Geometry> _getGeometry(ConstElementPtr element);
 

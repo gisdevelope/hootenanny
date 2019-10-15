@@ -114,9 +114,8 @@ public:
       testTags.set("uuid", "None");
     }
 
-    // By default, hoot will usually set these tags when ingesting a file
-    // this can cause problems when comparing files during testing, so we
-    // have the option to ignore it here.
+    // By default, hoot will usually set these tags when ingesting a file this can cause problems
+    // when comparing files during testing, so we have the option to ignore it here.
     if (!_useDateTime)
     {
       refTags.set(MetadataTags::SourceIngestDateTime(), "None");  // Wipe out the ingest datetime

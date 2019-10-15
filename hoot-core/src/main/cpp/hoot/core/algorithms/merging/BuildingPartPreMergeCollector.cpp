@@ -168,7 +168,7 @@ std::shared_ptr<geos::geom::Geometry> BuildingPartPreMergeCollector::_getGeometr
     case ElementType::Relation:
     {
       // Interestingly enough, conversion to a relation doesn't make any calls to OsmSchema and,
-      // therefore, don't require a mutex lock.  Its not inconceivable that fact could change at
+      // therefore, doesn't require a mutex lock.  Its not inconceivable that fact could change at
       // some point and then a mutex would have to be added here.
       geom =
         _elementConverter->convertToGeometry(std::dynamic_pointer_cast<const Relation>(element));
