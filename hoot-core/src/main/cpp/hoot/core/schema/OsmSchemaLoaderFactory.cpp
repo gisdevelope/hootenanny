@@ -44,20 +44,17 @@ OsmSchemaLoaderFactory& OsmSchemaLoaderFactory::getInstance()
   {
     _theInstance.reset(new OsmSchemaLoaderFactory());
   }
-
   return *_theInstance;
 }
 
 std::shared_ptr<OsmSchemaLoader> OsmSchemaLoaderFactory::createLoader(QString url)
 {
-  vector<std::string> names = Factory::getInstance().getObjectNamesByBase(
-    OsmSchemaLoader::className());
-
+  vector<std::string> names =
+    Factory::getInstance().getObjectNamesByBase(OsmSchemaLoader::className());
   for (size_t i = 0; i < names.size(); ++i)
   {
-    std::shared_ptr<OsmSchemaLoader> l(Factory::getInstance().constructObject<OsmSchemaLoader>(
-      names[i]));
-
+    std::shared_ptr<OsmSchemaLoader> l(
+      Factory::getInstance().constructObject<OsmSchemaLoader>(names[i]));
     if (l->isSupported(url))
     {
       return l;

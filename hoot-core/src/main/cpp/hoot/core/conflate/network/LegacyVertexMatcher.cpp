@@ -174,7 +174,6 @@ NodeMatcherPtr LegacyVertexMatcher::_getNodeMatcher()
     _nodeMatcher.reset(new NodeMatcher());
     _nodeMatcher->setMap(_map);
   }
-
   return _nodeMatcher;
 }
 

@@ -92,6 +92,8 @@ typedef boost::graph_traits<TagGraph>::edge_descriptor EdgeId;
 
 SchemaVertex empty;
 
+std::once_flag OsmSchema::_onceFlag;
+
 struct AverageKey
 {
   AverageKey(VertexId vid1, double w1, VertexId vid2, double w2)
@@ -1553,7 +1555,9 @@ const SchemaVertex& OsmSchema::getFirstCommonAncestor(const QString& kvp1, const
 
 OsmSchema& OsmSchema::getInstance()
 {
-  if (_theInstance == NULL)
+  std::call_once(
+    _onceFlag,
+    [](){ if (_theInstance == NULL)
   {
     _theInstance.reset(new OsmSchema());
     _theInstance->loadDefault();
@@ -1581,6 +1585,8 @@ OsmSchema& OsmSchema::getInstance()
       }
     }
   }
+  });
+
   return *_theInstance;
 }
 

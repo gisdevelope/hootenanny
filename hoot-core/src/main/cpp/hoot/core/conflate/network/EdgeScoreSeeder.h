@@ -73,6 +73,7 @@ public:
     std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> edgeMatchSimilarities)
   { _edgeMatchSimilarities = edgeMatchSimilarities; }
   void setMaxEdgeMatchSetFinderSteps(const int max) { _maxEdgeMatchSetFinderSteps = max; }
+  void setSchemaMutex(QMutex* mutex) { _schemaMutex = mutex; }
 
 private:
 
@@ -86,6 +87,7 @@ private:
 
   QMutex* _inputMutex;
   QMutex* _outputMutex;
+  QMutex* _schemaMutex;
   QQueue<ConstNetworkEdgePtr>* _input;
 
   QString _id;

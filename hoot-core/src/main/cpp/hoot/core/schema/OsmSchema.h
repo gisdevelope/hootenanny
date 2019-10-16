@@ -39,6 +39,7 @@
 // Standard
 #include <stdint.h>
 #include <vector>
+#include <mutex>
 
 namespace hoot
 {
@@ -468,6 +469,8 @@ private:
   QHash<QString, bool> _metadataKey;
 
   QSet<QString> _allTagKeysCache;
+
+  static std::once_flag _onceFlag;
 };
 
 }

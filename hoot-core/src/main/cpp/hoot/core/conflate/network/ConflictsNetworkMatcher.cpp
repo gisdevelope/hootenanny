@@ -702,6 +702,9 @@ std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> ConflictsNetworkMatcher::_in
 
 void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
 {
+  QElapsedTimer timer;
+  timer.start();
+
   QQueue<ConstNetworkEdgePtr> n1Edges = _getEdgeScoreSeederInput();
 
   std::shared_ptr<QMap<QString, EdgeMatchSimilarity>> edgeMatchSimilarities =
@@ -709,6 +712,7 @@ void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
 
   QMutex inputMutex;
   QMutex outputMutex;
+  QMutex schemaMutex;
 
   QThreadPool threadPool;
   int threadCount = ConfigOptions().getNetworkEdgeScoreSeederThreadCount();
@@ -734,13 +738,18 @@ void ConflictsNetworkMatcher::_seedEdgeScoresParallel()
     edgeScoreSeedTask->setEdgeMatchSimilarities(edgeMatchSimilarities);
     edgeScoreSeedTask->setMaxEdgeMatchSetFinderSteps(
       ConfigOptions().getNetworkEdgeMatchSetFinderMaxIterations());
+    edgeScoreSeedTask->setSchemaMutex(&schemaMutex);
     threadPool.start(edgeScoreSeedTask);
   }
   LOG_VART(threadPool.activeThreadCount());
-  LOG_DEBUG("\tLaunched " << threadCount << " edge processing tasks...");
+  LOG_INFO(
+    "\tLaunched " << threadCount << " edge processing tasks " << " for " <<
+    StringUtils::formatLargeNumber(n1Edges.size()) << " edges...");
 
   const bool allThreadsRemoved = threadPool.waitForDone();
   LOG_VART(allThreadsRemoved);
+
+  LOG_INFO("Seeded edge scores in: " << StringUtils::millisecondsToDhms(timer.elapsed()));
 
   LOG_VART(StringUtils::formatLargeNumber(_edgeMatches->getSize()));
 }

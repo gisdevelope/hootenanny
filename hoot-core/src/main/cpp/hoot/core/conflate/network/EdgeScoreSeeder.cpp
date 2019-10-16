@@ -33,6 +33,7 @@
 // Qt
 #include <QUuid>
 #include <QMutexLocker>
+#include <QElapsedTimer>
 
 namespace hoot
 {
@@ -47,6 +48,9 @@ _maxEdgeMatchSetFinderSteps(20)
 
 void EdgeScoreSeeder::run()
 {
+  QElapsedTimer timer;
+  timer.start();
+
   _id = QUuid::createUuid().toString();
   LOG_TRACE("Starting thread: " << _id << "...");
 
@@ -57,16 +61,18 @@ void EdgeScoreSeeder::run()
   _matchFinder->setEdgeMatchSimilarities(_edgeMatchSimilarities);
   _matchFinder->setMaxSteps(_maxEdgeMatchSetFinderSteps);
 
+  _startingInputSize = _input->size();
   while (!_input->empty())
   {
     _inputMutex->lock();
     ConstNetworkEdgePtr edge = _input->dequeue();
-    if (_input->size() % 10000 == 0)
+    if (_input->size() % 10 == 0)
     {
       PROGRESS_INFO(
         "\tProcessed " <<
         StringUtils::formatLargeNumber(_startingInputSize - _input->size()) <<
-        " / " << StringUtils::formatLargeNumber(_startingInputSize) << " edges.");
+        " / " << StringUtils::formatLargeNumber(_startingInputSize) << " edges in: " <<
+        StringUtils::millisecondsToDhms(timer.elapsed()) << ".");
     }
     _inputMutex->unlock();
 
@@ -97,18 +103,18 @@ void EdgeScoreSeeder::_processEdge(ConstNetworkEdgePtr edge1)
     LOG_VART(e2);
 
     //_schemaMutex->lock();
-    _outputMutex->lock();
     const double score = _details->getPartialEdgeMatchScore(edge1, e2);
     //_schemaMutex->unlock();
     LOG_TRACE("partial edge match score:" << score);
     if (score > 0.0)
     {
       // Add all the EdgeMatches that are seeded with this edge pair.
-      //_outputMutex->lock();
+      _outputMutex->lock();
+      //_schemaMutex->lock();
       _matchFinder->addEdgeMatches(edge1, e2);
-      //_outputMutex->unlock();
+      //_schemaMutex->unlock();
+      _outputMutex->unlock();
     }
-    _outputMutex->unlock();
 
     _numIntersectionsProcesed++;
   }

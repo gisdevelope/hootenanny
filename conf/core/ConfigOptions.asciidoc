@@ -2179,7 +2179,7 @@ The maximum number of optimization iterations used to calculate edge match sets.
 === network.edge.score.seeder.thread.count
 
 * Data Type: int
-* Default Value: `8`
+* Default Value: `1`
 
 TODO
 
